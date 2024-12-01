@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import TWEEN from 'https://unpkg.com/@tweenjs/tween.js@23.1.3/dist/tween.esm.js';
-import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
 
 
 gsap.registerPlugin(ScrollTrigger) 
@@ -22,6 +23,16 @@ let   clock = new THREE.Clock();
 camera.position.set(0, -9, 78);
 camera.rotation.set(degToRad(20),0,0)
 
+
+// Audio settings
+const listener = new THREE.AudioListener();
+const listener2 = new THREE.AudioListener();
+camera.add(listener);
+camera.add(listener2);
+
+const sound = new THREE.Audio(listener);
+const sound2 = new THREE.Audio(listener2);
+
 // const controls = new OrbitControls(camera, canvas);
 
 const renderer = new THREE.WebGLRenderer({
@@ -34,12 +45,13 @@ const textureLoader = new THREE.TextureLoader();
 
 renderer.setSize( window.innerWidth, window.innerHeight);
 
-const css3DRenderer = new CSS3DRenderer();
-css3DRenderer.setSize( window.innerWidth, window.innerHeight);
-css3DRenderer.domElement.style.position = 'absolute';
-css3DRenderer.domElement.style.top = '0px';
-css3DRenderer.domElement.style.left = '0px';
-
+const css2DRenderer = new CSS2DRenderer();
+css2DRenderer.setSize( window.innerWidth, window.innerHeight);
+css2DRenderer.domElement.style.position = 'absolute';
+css2DRenderer.domElement.style.top = '0px';
+css2DRenderer.domElement.style.left = '0px';
+// css2DRenderer.domElement.style.pointerEvents = 'none';
+document.body.appendChild(css2DRenderer.domElement);
 
 // Lights 
 
@@ -65,9 +77,9 @@ scene.add(pointLight);
 // Texts
 
 var title = document.getElementById("anim_title");
-const object = new CSS3DObject(title);
-object.position.set(0, 30, 0);
-scene.add(object);
+const title_object = new CSS2DObject(title);
+title_object.position.set(0, 30, 20);
+scene.add(title_object);
 
 
 // Background
@@ -84,27 +96,24 @@ scene.add(plane);
 
 spotLight.target = plane;
 
-// UI
+// UI - circles
 
-const circleGeo = new THREE.CircleGeometry( 0.1, 32 ); 
-const circleMat = new THREE.MeshStandardMaterial( { color: 0xfaf6b9 } ); 
-const circle = new THREE.Mesh( circleGeo, circleMat ); 
-const outCircleGeo = new THREE.RingGeometry( 0.2, 0.3 ); 
-const outerCircle = new THREE.Mesh( outCircleGeo, circleMat ); 
+var circle_in = document.createElement("span");
+circle_in.className = "ui_circle ui_circle_in";
+var circle_out = document.createElement("span");
+circle_out.className = "ui_circle ui_circle_out";
+const circle_in_obj = new CSS2DObject(circle_in);
+const circle_out_obj = new CSS2DObject(circle_out);
+
+scene.add(circle_in_obj);
+scene.add(circle_out_obj);
+circle_out_obj.add(circle_in_obj);
+
 
 function checkPlant() {
     if(plant_mesh) {
-        circle.position.set(plant_mesh.position.x+4, plant_mesh.position.y + 9, plant_mesh.position.z+5)
-        outerCircle.position.set(plant_mesh.position.x+4, plant_mesh.position.y + 9, plant_mesh.position.z+5)
-        outerCircle.material.emissive.color = 0xff0000;
-        outerCircle.material.emissive.intensity = 1000
     }
-   
 }
-
-
-scene.add(circle);
-scene.add(outerCircle);
 
 
 // Texture particles
@@ -200,94 +209,166 @@ function updateCamera() {
 
 // Anim text
 
-gsap.to(object.position, { x: 400, y: 400, duration: 2, ease: 'power2.inOut' });
-gsap.to(object.rotation, { y: Math.PI, duration: 2, ease: 'power2.inOut' });
-gsap.to(anim_title.style, { backgroundColor: 'rgba(255, 0, 0, 0.8)', duration: 2 });
+// gsap.to(object.position, { x: 400, y: 400, duration: 2, ease: 'power2.inOut' });
+// gsap.to(object.rotation, { y: Math.PI, duration: 2, ease: 'power2.inOut' });
+// gsap.to(anim_title.style, { color: 'rgba(0,0,0,0)', duration: 4});
 
 
 const alphaLeaf = textureLoader.load("images/alpha_map_leaf.png")
 
 // Plant loading
 const loader = new GLTFLoader();
-var plant_mesh;
-
-loader.load('./scene_plant_2.gltf',
-    (gltf) => {
-        plant_mesh = gltf.scene;
-        plant_mesh.scale.set(20, 20, 20);   
-        plant_mesh.light = false;  
-        var plant2 = plant_mesh.clone();
-        plant2.position.set(100,0,0);
-        scene.add(plant_mesh);
-        scene.add(plant2);
-
-        plant_mesh.children[0].children[1].material.setValues({
-            alphaMap : alphaLeaf,
-            transparent : true,
-            side : THREE.DoubleSide, 
-            alphaTest: 0.5,
-        })
-
-        // Dirt material
-        plant_mesh.traverse(function(child) {
-            if(child.name == "Mesh004_1") {
-                child.material.roughness = 1;
-            }   
-        })
-        plant_mesh.rotation.set(0,degToRad(-115), 0)
 
 
-        gltf.scene.position.set(0,-12,60);
-        new TWEEN.Tween(plant_mesh.position)
-        .to( { x:plant_mesh.position.x-10 }, 2000)
-        .delay(2000)
-        .easing(TWEEN.Easing.Cubic.InOut)
-        .start()
+// Returns a promise after loading -> make sure object exists
+function modelLoader(url) {
+    return new Promise((resolve, reject) => {
+      loader.load(url, data=> resolve(data), null, reject);
+    });
+}
 
-        new TWEEN.Tween(camera.position)
-        .to( { x:plant_mesh.position.x + 6, y: plant_mesh.position.y + 8, z: plant_mesh.position.z+9 }, 3000)
-        // .delay(3000)
-        .easing(TWEEN.Easing.Cubic.InOut)
-        .start()         
-        gsap.to(plant_mesh.position, {
-            scrollTrigger: {
-                    trigger: "#trigger",
-                    start: "top top",
-                    end: "bottom top",
-                    markers: true,
-                    scrub: 1,
-                    toggleActions: "restart pause resume pause"
-                },
-            x:plant_mesh.position.x-10
-        });
-
-    }, (error) => {
-        console.log(error);
-    }
-);
+var j=0;
+function playSound(sounds) {
+    const audioLoader = new THREE.AudioLoader();
+    var i = Math.floor(Math.random() * (sounds.length-1));
+    j ++;
+    audioLoader.load( "sounds/"+ sounds[i], function( buffer ) {
+        var availableSound = j%2 ==0 ? sound : sound2; 
+        availableSound.setBuffer( buffer );
+        availableSound.setLoop( false );
+        availableSound.setVolume( 0.5 );
+        availableSound.play();  
+    });
+}
 
 
-if(plant_mesh) {
-    console.log("go animation")
-    const tl = gsap.timeline();
+function plant_anim_start(plant_model) {
+    plant_model.scale.set(20, 20, 20);   
+    plant_model.light = false;  
+    var plant2 = plant_model.clone();
+    plant2.position.set(100,0,0);
+    scene.add(plant_model);
+    scene.add(plant2);
+
+    plant_model.children[0].children[1].material.setValues({
+        alphaMap : alphaLeaf,
+        transparent : true,
+        side : THREE.DoubleSide, 
+        alphaTest: 0.5,
+    })
+
+    // Dirt material
+    plant_model.traverse(function(child) {
+        if(child.name == "Mesh004_1") {
+            child.material.roughness = 1;
+        }   
+    })
+    plant_model.rotation.set(0,degToRad(-115), 0)
+
+    circle_in_obj.position.set(plant_model.position.x, plant_model.position.y +30, plant_model.position.z);
+
+
+    plant_model.position.set(0,-12,60);
+    // new TWEEN.Tween(plant_model.position)
+    // .to( { x:plant_model.position.x-10 }, 2000)
+    // .delay(2000)
+    // .easing(TWEEN.Easing.Cubic.InOut)
+    // .start()
+
+    // new TWEEN.Tween(camera.position)
+    // .to( { x:plant_model.position.x + 6, y: plant_model.position.y + 8, z: plant_model.position.z+9 }, 3000)
+    // .delay(6000)
+    // .easing(TWEEN.Easing.Cubic.InOut)
+    // .start() 
     
-    // Déplacez le plant_mesh
-    tl.to(plant_mesh.position, {
-        x: plant_mesh.position.x - 10, 
+    const tl = gsap.timeline();
+
+    // Move plant to the left
+    tl.to(plant_model.position, {
+        x: plant_model.position.x - 10, 
         duration: 2,                  
         ease: "power2.inOut",         
         delay: 2          
     });
 
+    tl.to(title.style, {
+        opacity: 0,
+        duration: 2,
+        ease: "power2.inOut", 
+    })
 
+    // Zoom in
     tl.to(camera.position, {
-        x: plant_mesh.position.x + 6,
-        y: plant_mesh.position.y + 8, 
-        z: plant_mesh.position.z + 9, 
+        x: plant_model.position.x-4,
+        y: plant_model.position.y + 8, 
+        z: plant_model.position.z + 9, 
         duration: 3,                  
         ease: "power2.inOut"         
     }); 
+    
 }
+
+
+async function main() {
+
+    // Wait for models to be loaded
+    const plant = await modelLoader('./scene_plant_2.gltf');
+    var plant_mesh = plant.scene; 
+
+    const laptop = await modelLoader('./laptop.gltf');
+    var laptop_mesh = laptop.scene;
+
+
+    plant_anim_start(plant_mesh);
+    
+        
+    animate();
+
+    const raycaster = new THREE.Raycaster();
+
+    let pointerPosition = { x: 0, y: 0 };
+    window.addEventListener('click', (event) => {
+        pointerPosition.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        pointerPosition.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+        if(plant_mesh) {
+            raycaster.setFromCamera(pointerPosition, camera);
+            const intersects = raycaster.intersectObject(plant_mesh);
+            if (intersects.length > 0) {
+                
+                var sounds_list = ["c6.mp3", "do-80236.mp3", "fa-78409.mp3", "re-78500.mp3", "si-80238.mp3", "si-80238.mp3", "sol-101774.mp3"] ;
+                playSound(sounds_list);
+                console.log("ding")
+            } else {
+                console.log("nan")
+            }
+
+        }
+    });
+}
+
+
+// if(plant_mesh) {
+//     console.log("go animation")
+//     const tl = gsap.timeline();
+    
+//     // Déplacez le plant_mesh
+//     tl.to(plant_mesh.position, {
+//         x: plant_mesh.position.x - 10, 
+//         duration: 2,                  
+//         ease: "power2.inOut",         
+//         delay: 2          
+//     });
+
+
+//     tl.to(camera.position, {
+//         x: plant_mesh.position.x + 6,
+//         y: plant_mesh.position.y + 8, 
+//         z: plant_mesh.position.z + 9, 
+//         duration: 3,                  
+//         ease: "power2.inOut"         
+//     }); 
+// }
 
 
 
@@ -311,26 +392,7 @@ loader.load('./laptop.gltf',
 )
 
 
-const raycaster = new THREE.Raycaster();
 
-let pointerPosition = { x: 0, y: 0 };
-window.addEventListener('click', (event) => {
-    pointerPosition.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    pointerPosition.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
-    if(plant_mesh) {
-        raycaster.setFromCamera(pointerPosition, camera);
-        const intersects = raycaster.intersectObject(plant_mesh);
-        canvas.addEventListener("click", function() {
-            if (intersects.length > 0) {
-                console.log("ding")
-            } else {
-                console.log("nan")
-            }
-        })
-
-    }
-});
 
 
 
@@ -342,15 +404,18 @@ const animate = () => {
     requestAnimationFrame(animate);
     // controls.update();
     TWEEN.update();
-    checkPlant();
+    // checkPlant();
     // spotLightHelper.update();
 
     // updateCamera();
     // Render the scene
+    css2DRenderer.render(scene,camera)
     renderer.render(scene, camera);
 }
 
-animate();
+main().catch(error => {
+  console.error(error);
+});
 
 
 
