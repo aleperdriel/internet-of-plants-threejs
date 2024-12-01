@@ -238,28 +238,28 @@ loader.load('./scene_plant_2.gltf',
 
 
         gltf.scene.position.set(0,-12,60);
-        // new TWEEN.Tween(plant_mesh.position)
-        // .to( { x:plant_mesh.position.x-10 }, 2000)
-        // .delay(2000)
-        // .easing(TWEEN.Easing.Cubic.InOut)
-        // .start()
+        new TWEEN.Tween(plant_mesh.position)
+        .to( { x:plant_mesh.position.x-10 }, 2000)
+        .delay(2000)
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .start()
 
-        // new TWEEN.Tween(camera.position)
-        // .to( { x:plant_mesh.position.x + 6, y: plant_mesh.position.y + 8, z: plant_mesh.position.z+9 }, 3000)
-        // // .delay(3000)
-        // .easing(TWEEN.Easing.Cubic.InOut)
-        // .start()         
-        // gsap.to(plant_mesh.position, {
-        //     scrollTrigger: {
-        //             trigger: "#trigger",
-        //             start: "top top",
-        //             end: "bottom top",
-        //             markers: true,
-        //             scrub: 1,
-        //             toggleActions: "restart pause resume pause"
-        //         },
-        //     x:plant_mesh.position.x-10
-        // });
+        new TWEEN.Tween(camera.position)
+        .to( { x:plant_mesh.position.x + 6, y: plant_mesh.position.y + 8, z: plant_mesh.position.z+9 }, 3000)
+        // .delay(3000)
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .start()         
+        gsap.to(plant_mesh.position, {
+            scrollTrigger: {
+                    trigger: "#trigger",
+                    start: "top top",
+                    end: "bottom top",
+                    markers: true,
+                    scrub: 1,
+                    toggleActions: "restart pause resume pause"
+                },
+            x:plant_mesh.position.x-10
+        });
 
     }, (error) => {
         console.log(error);
