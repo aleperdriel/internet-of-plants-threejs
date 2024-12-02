@@ -33,7 +33,7 @@ Make sure you have the following installed:
 
 1. Clone the repository:  
    ```bash  
-   git clone https://github.com/your-username/internet-of-plants.git  
+   git clone https://github.com/aleperdriel/internet-of-plants-threejs.git  
    cd internet-of-plants  
    ```  
 
