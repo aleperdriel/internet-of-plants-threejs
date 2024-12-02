@@ -1,7 +1,7 @@
 # Internet of Plants  
 
 **Internet of Plants** is originally a tangible project. It uses a network of multiple plants to create music from the user's touch-interactions with them. This THREE.js experience shows the main aspect of the project and invites the player to play with it! <br>
-I tried to do a soothing and immersive experience, that embarks the user in a small journey to discover this system.
+I tried to do a soothing and immersive experience, that embarks the user in a small journey to discover this system. </br> It implied way more difficulties and obstacles that I had imagined. A lot of this work is not finished, but I did try my best...
 
 ---
 

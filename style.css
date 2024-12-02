@@ -31,20 +31,10 @@ canvas {
 	text-align: center;
 }
 
-.slow-hide {
-	opacity: 0;
-}
-
-#trigger {
-	position: absolute;
-	height: 1000vh;
-	width: 100px;
-	top: 0;
-	z-index: 0;
-}
 
 .ui_circle {
 	border-radius: 50%;
+	opacity: 0;
 }
 
 .ui_circle_in {
@@ -57,4 +47,11 @@ canvas {
 	width: 50px;
 	height: 50px;
 	border: 3px solid #fcedb2;
+}
+
+.ui_tip {
+	opacity: 0;
+	font-family: sans-serif;
+	font-weight: bold;
+	color: #fffae5;
 }

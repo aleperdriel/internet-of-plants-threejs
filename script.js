@@ -35,6 +35,8 @@ const sound2 = new THREE.Audio(listener2);
 
 // const controls = new OrbitControls(camera, canvas);
 
+
+
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     alpha: true,
@@ -53,6 +55,18 @@ css2DRenderer.domElement.style.left = '0px';
 // css2DRenderer.domElement.style.pointerEvents = 'none';
 document.body.appendChild(css2DRenderer.domElement);
 
+
+// Handle change in window size
+window.addEventListener('resize', () => {
+    // Update the camera
+    camera.aspect =  window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    // Update the renderer
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+});
+
 // Lights 
 
 const light = new THREE.AmbientLight(0x606060, 15);
@@ -68,8 +82,7 @@ spotLight.shadow.camera.near = 1;
 spotLight.shadow.camera.far = 200;
 spotLight.penumbra = 1
 
-// let helper = new THREE.AxesHelper(50);
-// scene.add(helper);
+
 scene.add(light);
 scene.add(spotLight);
 scene.add(pointLight);
@@ -102,12 +115,19 @@ var circle_in = document.createElement("span");
 circle_in.className = "ui_circle ui_circle_in";
 var circle_out = document.createElement("span");
 circle_out.className = "ui_circle ui_circle_out";
+var circle_tip = document.createElement("p");
+circle_tip.className = "ui_tip";
+circle_tip.innerText = "Touch the plant";
 const circle_in_obj = new CSS2DObject(circle_in);
 const circle_out_obj = new CSS2DObject(circle_out);
+const circle_tip_obj = new CSS2DObject(circle_tip);
 
 scene.add(circle_in_obj);
 scene.add(circle_out_obj);
-circle_out_obj.add(circle_in_obj);
+circle_in_obj.add(circle_out_obj);
+circle_out_obj.add(circle_tip_obj);
+
+circle_tip_obj.position.set(0,5,0)
 
 
 function checkPlant() {
@@ -232,6 +252,7 @@ function playSound(sounds) {
     const audioLoader = new THREE.AudioLoader();
     var i = Math.floor(Math.random() * (sounds.length-1));
     j ++;
+    // Try to compensate for the delay between two sounds
     audioLoader.load( "sounds/"+ sounds[i], function( buffer ) {
         var availableSound = j%2 ==0 ? sound : sound2; 
         availableSound.setBuffer( buffer );
@@ -241,7 +262,7 @@ function playSound(sounds) {
     });
 }
 
-
+// Anim start of the scene
 function plant_anim_start(plant_model) {
     plant_model.scale.set(20, 20, 20);   
     plant_model.light = false;  
@@ -265,21 +286,10 @@ function plant_anim_start(plant_model) {
     })
     plant_model.rotation.set(0,degToRad(-115), 0)
 
-    circle_in_obj.position.set(plant_model.position.x, plant_model.position.y +30, plant_model.position.z);
+    circle_in_obj.position.set(plant_model.position.x-25, plant_model.position.y +15, plant_model.position.z);
 
 
     plant_model.position.set(0,-12,60);
-    // new TWEEN.Tween(plant_model.position)
-    // .to( { x:plant_model.position.x-10 }, 2000)
-    // .delay(2000)
-    // .easing(TWEEN.Easing.Cubic.InOut)
-    // .start()
-
-    // new TWEEN.Tween(camera.position)
-    // .to( { x:plant_model.position.x + 6, y: plant_model.position.y + 8, z: plant_model.position.z+9 }, 3000)
-    // .delay(6000)
-    // .easing(TWEEN.Easing.Cubic.InOut)
-    // .start() 
     
     const tl = gsap.timeline();
 
@@ -291,12 +301,6 @@ function plant_anim_start(plant_model) {
         delay: 2          
     });
 
-    tl.to(title.style, {
-        opacity: 0,
-        duration: 2,
-        ease: "power2.inOut", 
-    })
-
     // Zoom in
     tl.to(camera.position, {
         x: plant_model.position.x-4,
@@ -306,6 +310,18 @@ function plant_anim_start(plant_model) {
         ease: "power2.inOut"         
     }); 
     
+    tl.to(title.style, {
+        opacity: 0,
+        ease: "power2.inOut", 
+    }, "<");
+
+    tl.to([circle_in.style, circle_out.style, circle_tip.style], {
+        opacity: 1,
+        duration: 5,
+        ease: "power2.inOut", 
+    }, ">")
+
+
 }
 
 
